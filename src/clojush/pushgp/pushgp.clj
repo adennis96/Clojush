@@ -8,7 +8,7 @@
          tag zip environment input-output genome]
         [clojush.pushgp breed report]
         [clojush.pushgp.selection
-         selection epsilon-lexicase elitegroup-lexicase implicit-fitness-sharing novelty]
+         selection epsilon-lexicase elitegroup-lexicase dof-lexicase implicit-fitness-sharing novelty]
         [clojush.experimental.decimation]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -173,6 +173,9 @@
   (when (or (= (:parent-selection @push-argmap) :novelty-search)
             (some #{:novelty} (:meta-error-categories @push-argmap)))
     (calculate-novelty pop-agents novelty-archive @push-argmap))
+  ;; calculate features from matrix factorization to support DOF lexicase selection
+  (when (= (:parent-selection @push-argmap) :dof-lexicase)
+    (calculate-dof-features pop-agents @push-argmap))
   (timer @push-argmap :other)
   ;; report and check for success
   (let [[outcome best] (report-and-check-for-success (vec (doall (map deref pop-agents)))

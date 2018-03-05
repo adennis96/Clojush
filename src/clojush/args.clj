@@ -173,7 +173,7 @@
           :tag-enrichment 0
           ;; The number of extra copies of tag-related instructions that will be included in
           ;; the atom-generators.
-          
+
           :tag-enrichment-types [:integer :boolean :exec :float :char :string :code]
           ;; The types for tag-related instructions that will be included in the atom-generators
           ;; when :tag-enrichment is greater than 0.
@@ -185,7 +185,7 @@
           ;; :replace-child-that-exceeds-size-limit-with to :empty. Also, empty-genome individuals
           ;; will not be selected as parents. You will probably also want to provide a high value
           ;; for :max-generations. If :autoconstructive is :revertable, rather than true, then
-          ;; :genetic-operator-probabilities will be {[:make-next-operator-revertable 
+          ;; :genetic-operator-probabilities will be {[:make-next-operator-revertable
           ;; :autoconstruction] 1.0}.
 
           :autoconstructive-diversification-test :gecco2016
@@ -206,7 +206,7 @@
 
           :autoconstructive-decay 0.0
           ;; The rate for random gene deletions after autoconstruction.
-          
+
           :autoconstructive-parent-decay 0.0
           ;; The rate for random gene deletions in parent genomes used for autoconstruction.
 
@@ -227,11 +227,11 @@
           ;; The number of extra instances of autoconstructive_boolean_rand to include in
           ;; :atom-generators for autoconstruction. If negative then autoconstructive_boolean_rand
           ;; will not be in :atom-generators at all.
-          
+
           :autoconstructive-tag-types [:integer :boolean :exec :float :char :string :code]
           ;; The types for tag-related instructions that will be included in the atom-generators
           ;; when :autoconstructive is true.
-          
+
           :autoconstructive-environments false
           ;; If true, then :environment is included in the types for which instructions are
           ;; included for autoconstruction.
@@ -263,7 +263,7 @@
           :parent-selection :lexicase
           ;; The parent selection method. Options include :tournament, :lexicase, :epsilon-lexicase,
           ;; :elitegroup-lexicase, :uniform, :leaky-lexicase, :random-threshold-lexicase,
-          ;; :novelty-search
+          ;; :dof-lexicase, :novelty-search
 
           :epsilon-lexicase-epsilon nil
           ;; When parent-selection is :epsilon-lexicase,
@@ -273,10 +273,10 @@
           ;; The probability that each filtering step in epsilon lexicase selection will allow
           ;; candidates with errors within epsilon of the best to survive, rather than just
           ;; the best.
-          
+
           :random-threshold-lexicase-probability 1
-          ;; The probability that each filtering step in random threshold lexicase selection will 
-          ;; allow candidates with errors equal to or better than a randomly chosen threshold to 
+          ;; The probability that each filtering step in random threshold lexicase selection will
+          ;; allow candidates with errors equal to or better than a randomly chosen threshold to
           ;; survive, rather than just the best.
 
           :lexicase-leakage 0.1
@@ -286,8 +286,14 @@
           :lexicase-slippage 0
           ;; If using lexicase, leaky lexicase, epsilon lexicase, or random threshold lexicase
           ;; selection, the probability that each step of the lexicase selection process will
-          ;; "slip" and return a random candidate from the current pool, rather than continuing 
+          ;; "slip" and return a random candidate from the current pool, rather than continuing
           ;; to filter the pool.
+
+          :dof-features 50
+          ;; If using DOF lexicase, the number of features to extract from the error matrix
+
+          :dof-iterations 20
+          ;; If using DOF lexicase, the number of steps to perform the factorization algorithm
 
           :tournament-size 7
           ;; If using tournament selection, the size of the tournaments.
@@ -309,7 +315,7 @@
           :meta-error-categories []
           ;; A vector containing meta-error categories that can be used for parent selection, but
           ;; do not affect total error. See clojush.evaluate for options.
-          
+
           :improvement-discount 0.5
           ;; The factor by successively older improvements are discounted when calculating
           ;; improvement-related meta-errors.
@@ -503,7 +509,7 @@
   ;; Augmentation for autoconstruction
   (when (:autoconstructive @push-argmap)
     (if (= :revertable (:autoconstuctive @push-argmap))
-      (swap! push-argmap assoc :genetic-operator-probabilities 
+      (swap! push-argmap assoc :genetic-operator-probabilities
              {[:make-next-operator-revertable :autoconstruction] 1.0})
       (swap! push-argmap assoc :genetic-operator-probabilities {:autoconstruction 1.0}))
     (swap! push-argmap assoc :epigenetic-markers [:close :silent])
@@ -634,7 +640,7 @@
           use-type #(some #{%} types)]
       (swap! push-argmap assoc
              :atom-generators
-             (let [tag-instructions 
+             (let [tag-instructions
                    (concat [(tag-instruction-erc types 10000)
                             (untag-instruction-erc 10000)
                             (tagged-instruction-erc 10000)
@@ -662,4 +668,3 @@
   ([argmap]
    (load-push-argmap argmap)
    (reset-globals)))
-

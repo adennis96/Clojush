@@ -2,12 +2,12 @@
   (:use [clojush random]))
 
 (defn one-individual-per-error-vector-for-lexicase
-  "When :parent-selection is a lexicase method, returns onl one random individual 
+  "When :parent-selection is a lexicase method, returns onl one random individual
   to represent each error vector."
   [pop {:keys [parent-selection]}]
   (if (some #{parent-selection}
-            #{:lexicase :leaky-lexicase :epsilon-lexicase :elitegroup-lexicase 
-              :random-threshold-lexicase})
+            #{:lexicase :leaky-lexicase :epsilon-lexicase :elitegroup-lexicase
+              :random-threshold-lexicase :dof-lexicase})
     (map lrand-nth (vals (group-by #(:errors %) pop)))
     pop))
 
@@ -23,14 +23,14 @@
     pop))
 
 (defn age-mediate
-  "If age-mediated-parent-selection is falsy, returns pop. Otherwise, 
-  age-mediated-parent-selection should be a vector of [pmin pmax] with pmin and pmax both 
+  "If age-mediated-parent-selection is falsy, returns pop. Otherwise,
+  age-mediated-parent-selection should be a vector of [pmin pmax] with pmin and pmax both
   being between 0 and 1 (inclusive) with pmin + pmax <= 1.0. Then, with probability pmin,
   returns individuals in pop with the minimum age; with probability pmax, returns all of pop;
   with probability (- 1.0 pmin pmax), selects an age cutoff uniformly from those present
   in the population and returns individuals with the cutoff age or lower. If a third
   element of :invert is included in age-mediated-parent-selection then with probability
-  pmin, returns individuals in pop with the maximum age; with probability pmax, returns 
+  pmin, returns individuals in pop with the maximum age; with probability pmax, returns
   all of pop; with probability (- 1.0 pmin pmax), selects an age cutoff uniformly from
   those present in the population and returns individuals with the cutoff age or higher."
   [pop {:keys [age-mediated-parent-selection]}]
@@ -62,7 +62,7 @@
         (filter (fn [ind] ((if (:reversible random-screen)
                              (lrand-nth [<= >=])
                              <=)
-                           (:grain-size ind) 
+                           (:grain-size ind)
                            grain-size-limit))
                 pop)))))
 
@@ -75,4 +75,3 @@
       (age-mediate argmap)
       (screen argmap)
       (one-individual-per-error-vector-for-lexicase argmap)))
-
