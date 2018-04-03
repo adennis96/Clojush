@@ -19,6 +19,7 @@
                                      (lrand-nth preselected)
                                      (lexicase-selection preselected argmap))
                    :dof-lexicase (dof-lexicase-selection preselected argmap)
+                   :dof-epsilon-lexicase (dof-epsilon-lexicase-selection preselected argmap)
                    :novelty-search (novelty-tournament-selection preselected argmap)
                    :uniform (lrand-nth preselected)
                    (throw (Exception. (str "Unrecognized argument for parent-selection: "

@@ -7,7 +7,7 @@
   [pop {:keys [parent-selection]}]
   (if (some #{parent-selection}
             #{:lexicase :leaky-lexicase :epsilon-lexicase :elitegroup-lexicase
-              :random-threshold-lexicase :dof-lexicase})
+              :random-threshold-lexicase :dof-lexicase :dof-epsilon-lexicase})
     (map lrand-nth (vals (group-by #(:errors %) pop)))
     pop))
 

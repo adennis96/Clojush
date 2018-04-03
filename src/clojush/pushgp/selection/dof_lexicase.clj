@@ -1,5 +1,5 @@
 (ns clojush.pushgp.selection.dof-lexicase
-  (:use [clojush matrix random]
+  (:use [clojush matrix random globals]
         [clojure.math numeric-tower]))
 
 (defn diff-cost
@@ -58,5 +58,31 @@
                                      (map :dof-features survivors)))]
         (recur (filter (fn [indiv] (= (nth (:dof-features indiv) (first cases))
                                       min-feat))
+                       survivors)
+               (rest cases))))))
+
+(defn dof-epsilon-lexicase-selection
+  "Returns an individual that performs within epsilon of the best on the
+  dof-features when considered one at a time in random order"
+  [pop {:keys [epsilon-lexicase-epsilon epsilon-lexicase-probability] :as argmap}]
+  (loop [survivors pop
+         cases (lshuffle (range (count (:dof-features (first pop)))))]
+    (if (or (empty? cases)
+            (empty? (rest survivors))
+            (< (lrand) (:lexicase-slippage argmap)))
+      (lrand-nth survivors)
+      (let [; If epsilon-lexicase-epsilon is set in the argmap, use it for epsilon.
+             ; Otherwise, use automatic epsilon selections, which are calculated once per generation.
+             epsilon (if (<= (lrand) epsilon-lexicase-probability)
+                       (if epsilon-lexicase-epsilon
+                         epsilon-lexicase-epsilon
+                         (nth @epsilons-for-epsilon-lexicase (first cases)))
+                       0)
+             min-feat-for-case (apply min (map #(nth % (first cases))
+                                              (map :dof-features survivors)))]
+        (recur (filter #(<= (nth (:dof-features %)
+                                 (first cases))
+                            (+ min-feat-for-case
+                               epsilon))
                        survivors)
                (rest cases))))))

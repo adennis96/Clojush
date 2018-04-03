@@ -167,14 +167,14 @@
   (when (= (:total-error-method @push-argmap) :ifs)
     (calculate-implicit-fitness-sharing pop-agents @push-argmap))
   ;; calculate epsilons for epsilon lexicase selection
-  (when (= (:parent-selection @push-argmap) :epsilon-lexicase)
+  (when (some #{(:parent-selection @push-argmap)} #{:epsilon-lexicase :dof-epsilon-lexicase})
     (calculate-epsilons-for-epsilon-lexicase pop-agents @push-argmap))
   ;; calculate novelty when necessary
   (when (or (= (:parent-selection @push-argmap) :novelty-search)
             (some #{:novelty} (:meta-error-categories @push-argmap)))
     (calculate-novelty pop-agents novelty-archive @push-argmap))
   ;; calculate features from matrix factorization to support DOF lexicase selection
-  (when (= (:parent-selection @push-argmap) :dof-lexicase)
+  (when (some #{(:parent-selection @push-argmap)} #{:dof-lexicase :dof-epsilon-lexicase})
     (calculate-dof-features pop-agents @push-argmap))
   (timer @push-argmap :other)
   ;; report and check for success
