@@ -295,7 +295,7 @@
           :dof-features 50
           ;; If using DOF lexicase, the number of features to extract from the error matrix
 
-          :dof-iterations 20
+          :dof-iterations 200
           ;; If using DOF lexicase, the number of steps to perform the factorization algorithm
 
           :tournament-size 7

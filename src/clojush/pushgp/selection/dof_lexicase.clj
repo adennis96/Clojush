@@ -1,30 +1,39 @@
 (ns clojush.pushgp.selection.dof-lexicase
-  (:use [clojush matrix random globals]
-        [clojure.math numeric-tower]))
+  (:use [clojush random globals]
+        [clojure.math numeric-tower]
+        [uncomplicate.neanderthal core native]
+        [uncomplicate.fluokitten core]))
+
+(defn rand-matr
+  [h w n]
+  (dge h w (for [x (range h) y (range w)] (rand n))))
 
 (defn diff-cost
   [A B]
-  (reduce + (flatten (matr-map (fn [x y] (expt (- x y) 2)) A B))))
+  (fold (fmap (fn ^double [^double x ^double y] (expt (- x y) 2)) A B)))
 
 (defn nmf
   "Given non-negative matrix V, returns two matrices W and H such that V = WH
   Implemented using multiplicative update rule (Lee and Seung, 2001)"
   [V k max-iter]
-  (loop [W (rand-matr (height V) k 1)
-         H (rand-matr k (width V) 1)
+  (loop [W (rand-matr (mrows V) k 1)
+         H (rand-matr k (ncols V) 1)
          iter max-iter
          start-time (System/currentTimeMillis)]
-    (printf "step %2d; cost: %.4f\n" iter (diff-cost V (matr-mult W H))) (flush) ; DEBUG
-    (if (or (<= iter 0) (= (diff-cost V (matr-mult W H)) 0))
+    (printf "step %2d; cost: %.4f\n" iter (diff-cost V (mm W H))) (flush) ; DEBUG
+    (if (or (<= iter 0) (= (diff-cost V (mm W H)) 0))
       [W H]
-      (let [new-H (matr-doall (matr-map * H
-                    (matr-map / (matr-mult (transpose W) V)
-                                (matr-mult (transpose W) W H))))]
+      (let [new-H (fmap (fn ^double [^double x ^double y] (* x y)) H
+                        (fmap (fn ^double [^double x ^double y] (/ x y))
+                              (mm (trans W) V)
+                              (mm (trans W) W H)))
+            new-W (fmap (fn ^double [^double x ^double y] (* x y)) W
+                        (fmap (fn ^double [^double x ^double y] (/ x y))
+                              (mm V (trans new-H))
+                              (mm W new-H (trans new-H))))]
         (printf "time: %.4f sec; " (float (/ (- (System/currentTimeMillis) start-time) 1000))) ; DEBUG
         (recur
-          (matr-doall (matr-map * W
-            (matr-map / (matr-mult V (transpose new-H))
-                        (matr-mult W new-H (transpose new-H)))))
+          new-W
           new-H
           (- iter 1)
           (System/currentTimeMillis))))))
@@ -38,12 +47,12 @@
   on matrix factorization"
   [pop-agents {:keys [use-single-thread dof-features dof-iterations] :as argmap}]
   (println "calculating DOF features...") (flush)
-  (let [error-matrix (map (fn [x] (:errors (deref x))) pop-agents)
+  (let [error-vecs (map (fn [x] (:errors (deref x))) pop-agents)
+        error-matrix (dge (count error-vecs) (count (first error-vecs)) (flatten error-vecs) {:layout :row})
         [W H] (nmf error-matrix dof-features dof-iterations)]
-    ; (println "V-WH: " (matr-map - error-matrix (matr-map round (matr-mult W H)))) ; DEBUG
     (dorun (map (fn [indiv feats] ((if use-single-thread swap! send)
-                                   indiv assign-features-to-individual feats))
-                pop-agents W)))
+                                   indiv assign-features-to-individual (into [] feats)))
+                pop-agents (rows W))))
   (when-not use-single-thread (apply await pop-agents))
   (println "done calculating DOF features"))
 
