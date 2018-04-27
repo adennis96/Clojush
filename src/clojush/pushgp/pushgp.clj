@@ -167,7 +167,7 @@
   (when (= (:total-error-method @push-argmap) :ifs)
     (calculate-implicit-fitness-sharing pop-agents @push-argmap))
   ;; calculate epsilons for epsilon lexicase selection
-  (when (some #{(:parent-selection @push-argmap)} #{:epsilon-lexicase :dof-epsilon-lexicase})
+  (when (= (:parent-selection @push-argmap) :epsilon-lexicase)
     (calculate-epsilons-for-epsilon-lexicase pop-agents @push-argmap))
   ;; calculate novelty when necessary
   (when (or (= (:parent-selection @push-argmap) :novelty-search)
@@ -176,6 +176,8 @@
   ;; calculate features from matrix factorization to support DOF lexicase selection
   (when (some #{(:parent-selection @push-argmap)} #{:dof-lexicase :dof-epsilon-lexicase})
     (calculate-dof-features pop-agents @push-argmap))
+  (when (= (:parent-selection @push-argmap) :dof-epsilon-lexicase)
+    (calculate-epsilons-for-dof-epsilon-lexicase pop-agents @push-argmap))
   (timer @push-argmap :other)
   ;; report and check for success
   (let [[outcome best] (report-and-check-for-success (vec (doall (map deref pop-agents)))

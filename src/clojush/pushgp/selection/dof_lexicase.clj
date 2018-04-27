@@ -1,5 +1,6 @@
 (ns clojush.pushgp.selection.dof-lexicase
   (:use [clojush random globals]
+        [clojush.pushgp.selection epsilon-lexicase]
         [clojure.math numeric-tower]
         [uncomplicate.neanderthal core native]
         [uncomplicate.fluokitten core]))
@@ -72,6 +73,17 @@
                                       min-feat))
                        survivors)
                (rest cases))))))
+
+(defn calculate-epsilons-for-dof-epsilon-lexicase
+ "Calculates the epsilon values for DOF epsilon lexicase selection. Only runs
+ once per generation. "
+ [pop-agents {:keys [epsilon-lexicase-epsilon]}]
+ (when (not epsilon-lexicase-epsilon)
+   (let [pop (map deref pop-agents)
+         features (apply map list (map :dof-features pop))
+         epsilons (map mad features)]
+     (println "Epsilons for DOF epsilon lexicase:" epsilons)
+     (reset! epsilons-for-epsilon-lexicase epsilons))))
 
 (defn dof-epsilon-lexicase-selection
   "Returns an individual that performs within epsilon of the best on the
